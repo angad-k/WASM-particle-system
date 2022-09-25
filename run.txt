@@ -1,0 +1,2 @@
+emcc particles.cpp -o particles.js -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS='["_initialize_particle_system", "_malloc", "_main"]' -s EXTRA_EXPORTED_RUNTIME_METHODS='["cwrap", "getValue", "setValue"]'
+python -m http.server 8080
