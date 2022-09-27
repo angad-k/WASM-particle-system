@@ -12,13 +12,13 @@ class particle_system
     
 
     // base color
-    int base_r = 109;
-    int base_g = 227;
-    int base_b = 18;
+    int base_r = 255;
+    int base_g = 0;
+    int base_b = 0;
 
-    int target_r = 227;
-    int target_g = 18;
-    int target_b = 178;
+    int target_r = 0;
+    int target_g = 0;
+    int target_b = 255;
 
     //constants
     float force_multiplier = 20;
@@ -84,11 +84,13 @@ class particle_system
     }
 
 public:
-    particle_system(int p_n, float* p_colors, float* p_positions)
+    particle_system(int p_n, float* p_colors, float* p_positions, float p_f, float p_max_speed)
     {
         n = p_n;
         colors = p_colors;
         positions = p_positions;
+        force_multiplier = p_f;
+        p_max_speed = max_speed;
         set_random_colors();
         set_random_positions();
         set_masses();
@@ -106,8 +108,9 @@ public:
             float dy = target_y-y;
             // std::cout << "dx dy " << dx << " " << dy << "\n";
             float distance = std::sqrt(dx*dx + dy*dy);
-            
-            float mapped_d = map_inf_to_1(distance);
+            // std::cout << "distance " << distance << "\n";
+            float mapped_d = std::expf(-std::abs(x/500));
+            // std::cout << "mapped_d " << mapped_d << "\n";
             colors[i*3] = smooth_step(base_r, target_r, mapped_d);
             colors[i*3 + 1] = smooth_step(base_g, target_g, mapped_d);
             colors[i*3 + 2] = smooth_step(base_b, target_b, mapped_d);
@@ -146,12 +149,12 @@ public:
 };
 particle_system* p_s;
 extern "C" {
-void initialize_particle_system(int p_n, float* p_colors, float* p_positions);
+void initialize_particle_system(int p_n, float* p_colors, float* p_positions, float f, float max_speed);
 void update_particle_system(int target_x, int target_y, float delta);
 }
-void initialize_particle_system(int p_n, float* p_colors, float* p_positions)
+void initialize_particle_system(int p_n, float* p_colors, float* p_positions, float f, float max_speed)
 {
-    p_s = new particle_system(p_n, p_colors, p_positions);
+    p_s = new particle_system(p_n, p_colors, p_positions, f, max_speed);
     EM_ASM(
         // here you can write inline javascript code!
         console.log("Particle system initiated");

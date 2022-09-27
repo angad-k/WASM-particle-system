@@ -1,19 +1,26 @@
-let initialize_particle_system = Module.cwrap("initialize_particle_system", null, ["number", "number", "number"]);
+let initialize_particle_system = Module.cwrap("initialize_particle_system", null, ["number", "number", "number", "number", "number"]);
 let update_particle_system = Module.cwrap("update_particle_system", null, ["number", "number", "number"]);
-let n = 100;
+let n;
 let colors_array, positions_array;
+let loop_paused = false;
+let loop_initialized = false;
 const start = async () => {
-    // Instantiate the wasm.
-    // const res = await WebAssembly.instantiate(buf, {})
-  
-    // // Get the function out of the exports.Module.HEAP32.buffer
-    // const { sumArrayInt32, memory } = res.instance.exports
+    
+    n = Number(document.getElementById("n").value);
+    let force_multiplier = Number(document.getElementById("f").value);
+    let max_speed = Number(document.getElementById("max_speed").value);
+
+    console.log("n", n);
+    console.log("force_multiplier", force_multiplier);
+    console.log("max_speed", max_speed);
+
     var colors_ptr = Module._malloc(4*n*3);
     var positions_ptr = Module._malloc(4*n*2);
     colors_array = new Float32Array(Module.HEAP32.buffer, colors_ptr, n*3);
     positions_array = new Float32Array(Module.HEAP32.buffer, positions_ptr, n*2);
 
-    initialize_particle_system(n, colors_array.byteOffset, positions_array.byteOffset);
+    loop_paused = true;
+    await initialize_particle_system(n, colors_array.byteOffset, positions_array.byteOffset, force_multiplier, max_speed);
     addParticles();
 }
 
@@ -27,11 +34,7 @@ document.onmousemove = handleMouseMove;
 function handleMouseMove(event) {
     var dot, eventDoc, doc, body, pageX, pageY;
 
-    event = event || window.event; // IE-ism
-
-    // If pageX/Y aren't available and clientX/Y are,
-    // calculate pageX/Y - logic taken from jQuery.
-    // (This is to support old IE)
+    event = event || window.event; 
     if (event.pageX == null && event.clientX != null) {
         eventDoc = (event.target && event.target.ownerDocument) || document;
         doc = eventDoc.documentElement;
@@ -72,13 +75,19 @@ const addParticles = () => {
         div.style.top = positions_array[index*2 + 1];
         document.body.appendChild(div);
     })
-    updateParticles(0)
+    loop_paused = false;
+    if(!loop_initialized)
+    {
+        console.log("loop initialized");
+        loop_initialized = true
+        updateParticles(0)
+    }
 }
 
 const updateParticles = async (delta) => {
     // console.log("delta", delta);
     // console.log(mousePos?.x, mousePos?.y)
-    if(mousePos)
+    if(mousePos && !loop_paused)
     {
         await update_particle_system(mousePos.x, mousePos.y, delta);
         Array.from(Array(n).keys()).map((index)=>{
