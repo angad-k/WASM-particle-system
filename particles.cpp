@@ -109,7 +109,7 @@ public:
             // std::cout << "dx dy " << dx << " " << dy << "\n";
             float distance = std::sqrt(dx*dx + dy*dy);
             // std::cout << "distance " << distance << "\n";
-            float mapped_d = std::expf(-std::abs(x/500));
+            float mapped_d = std::expf(-std::abs(distance/500));
             // std::cout << "mapped_d " << mapped_d << "\n";
             colors[i*3] = smooth_step(base_r, target_r, mapped_d);
             colors[i*3 + 1] = smooth_step(base_g, target_g, mapped_d);
